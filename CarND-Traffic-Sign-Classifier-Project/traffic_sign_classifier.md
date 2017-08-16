@@ -61,95 +61,91 @@ After applying the augments to all the classes, the final example distribution i
 
 ## Design and Test a Model Architecture
 
+I've tried 3 model architectures, including LeNet, MSNet, and Incept model.
 
+I first tried LeNet. I didn't keep the latest result in my notebook, likely close to 90% accuracy on validation data in 20 epochs. I believe with more epochs, or adding 1 or 2 layers I can push the validation accuracy more than 93%.
 
+Then I tried the MSNet which is mentioned the the paper given in the project. The validation accuracy was slightly better than LeNet with similar number of epochs. 
 
-####2. Describe what your final model architecture looks like including model type, layers, layer sizes, connectivity, etc.) Consider including a diagram and/or table describing the final model.
+I know about the popular Google Inception model so I wanted to try this architecture also, that I focused in this project.
+
+I encapsulated some basic functions like building a conv2d layer, fully connection layer, train, test etc into a SignClassifer class, then all other models derive it. This makes it relatively more convenient to switch among different model architectures. But I didn't split the tenssor session. 
+
+The Inception model 
+
+[Inception Model](https://arxiv.org/pdf/1409.4842.pdf	"inception Model")
+
+The classifier model I was using is built by stacking 2 level of inception models with dimension reduction. 
+
+###Model Architecture
 
 My final model consisted of the following layers:
 
-|      Layer      |               Description                |
-| :-------------: | :--------------------------------------: |
-|      Input      |            32x32x3 RGB image             |
-| Convolution 3x3 | 1x1 stride, same padding, outputs 32x32x64 |
-|      RELU       |                                          |
-|   Max pooling   |      2x2 stride,  outputs 16x16x64       |
-| Convolution 3x3 |                   etc.                   |
-| Fully connected |                   etc.                   |
-|     Softmax     |                   etc.                   |
-|                 |                                          |
-|                 |                                          |
+|         Layer          |               Description                |
+| :--------------------: | :--------------------------------------: |
+|         Input          |         32x32x1 Gray scale image         |
+|    Convolution 1x1     | 1x1 stride, same padding, outputs 32x32x16 |
+|          RELU          |                                          |
+|    Convolution 3x3     | 3x3 stride, same padding, outputs 32x32x32 |
+|          RELU          |                                          |
+|     InceptionModel     |            outputs 32x32x128             |
+|      Max pooling       |      2x2 stride,  outputs 16x16x128      |
+|    InceptionModel3     |             output 16x16x256             |
+|      Max pooling       |  2x2 kernel, 3x3 stride, output 8x8x256  |
+|    Convolution 1x1     | 1x1 stride, same padding, output 8x8x512. |
+|          RELU          |                                          |
+|        dropout         |        keep probability used 0.5.        |
+|        flatten         |              output: 32768               |
+| Fully connection +RELU |        input: 32768, output: 2048        |
+| Fully connection +RELU |         input: 2048, output: 512         |
+|        Dropout         |       keep probablitity used 0.5.        |
+|    Fully Connection    |           input 512, output 43           |
+|        Softmax         |                                          |
+|                        |                                          |
+|                        |                                          |
 
 
 
-####3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
+ ### Model Training
 
-To train the model, I used an ....
+* Optimizer: AdamOptimizer. 
+* Learning Rate: 0.0008
+* Batch Size: 128
+* epochs: 15 in total
+* shuffle the training data each time when start a new epoch. 
 
-####4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
+### Model Tuning
 
-My final model results were:
-* training set accuracy of ?
-* validation set accuracy of ? 
-* test set accuracy of ?
+First, I trained the model without any data augmentation. With 10 epochs, the validation accuracy got ~91% while the training accuracy getting very high, close to 100%, which may indicate the model start overfitting or not enough training data. So I did some random scaling, translating on the training images to get some artificial training images. These augmentation is to emulate the images that may be got when taking a video on the road. After this, the validation accuracy increased to ~97% with 10 epochs. I was still concerned about the overfitting issue so I added 2 more dropout layers. Then I re-train the model with 15 epochs, reached 98.5% on validation data and 100% on training data. Still looks like having overfitting issue. I may need to generate more images or applying more transformations.
 
-If an iterative approach was chosen:
-* What was the first architecture that was tried and why was it chosen?
-* What were some problems with the initial architecture?
-* How was the architecture adjusted and why was it adjusted? Typical adjustments could include choosing a different model architecture, adding or taking away layers (pooling, dropout, convolution, etc), using an activation function or changing the activation function. One common justification for adjusting an architecture would be due to overfitting or underfitting. A high accuracy on the training set but low accuracy on the validation set indicates over fitting; a low accuracy on both sets indicates under fitting.
-* Which parameters were tuned? How were they adjusted and why?
-* What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? How might a dropout layer help with creating a successful model?
+Final results:
 
-If a well known architecture was chosen:
-* What architecture was chosen?
-* Why did you believe it would be relevant to the traffic sign application?
-* How does the final model's accuracy on the training, validation and test set provide evidence that the model is working well?
+* training set accuracy of 100%
+* validation set accuracy of 98.5%
+* test set accuracy of 95.2%
+
+#### Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
 
 
-###Test a Model on New Images
 
-####1. Choose five German traffic signs found on the web and provide them in the report. For each image, discuss what quality or qualities might be difficult to classify.
+##Test a Model on New Images
+
+### Choose five German traffic signs found on the web and provide them in the report. For each image, discuss what quality or qualities might be difficult to classify.
 
 Here are five German traffic signs that I found on the web:
 
-![alt text][image4] ![alt text][image5] ![alt text][image6] 
-![alt text][image7] ![alt text][image8]
-
-The first image might be difficult to classify because ...
-
-####2. Discuss the model's predictions on these new traffic signs and compare the results to predicting on the test set. At a minimum, discuss what the predictions were, the accuracy on these new predictions, and compare the accuracy to the accuracy on the test set (OPTIONAL: Discuss the results in more detail as described in the "Stand Out Suggestions" part of the rubric).
-
-Here are the results of the prediction:
-
-|     Image     |  Prediction   |
-| :-----------: | :-----------: |
-|   Stop Sign   |   Stop sign   |
-|    U-turn     |    U-turn     |
-|     Yield     |     Yield     |
-|   100 km/h    |  Bumpy Road   |
-| Slippery Road | Slippery Road |
+![image](/home/lizhang/workspace/Udacity/CarND/CarND-Traffic-Sign-Classifier-Project/examples/web_images.png)
 
 
-The model was able to correctly guess 4 of the 5 traffic signs, which gives an accuracy of 80%. This compares favorably to the accuracy on the test set of ...
 
-####3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
+The 9th image might be difficult: having partial of another sign at behind.
 
-The code for making predictions on my final model is located in the 11th cell of the Ipython notebook.
+The 10th might be difficult too : having some slash lines crossing the number.
 
-For the first image, the model is relatively sure that this is a stop sign (probability of 0.6), and the image does contain a stop sign. The top five soft max probabilities were
+The Top5 results:
 
-| Probability |  Prediction   |
-| :---------: | :-----------: |
-|     .60     |   Stop sign   |
-|     .20     |    U-turn     |
-|     .05     |     Yield     |
-|     .04     |  Bumpy Road   |
-|     .01     | Slippery Road |
+![image](/home/lizhang/workspace/Udacity/CarND/CarND-Traffic-Sign-Classifier-Project/examples/top5.png)
 
-
-For the second image ... 
-
-### (Optional) Visualizing the Neural Network (See Step 4 of the Ipython notebook for more details)
-####1. Discuss the visual output of your trained network's feature maps. What characteristics did the neural network use to make classifications?
+####The accuracy only reached 81.8% on these new images. I did this for several round. At beginning, this model was not so confident on its predictions. After I trained a few more rounds, it's getting fully confident on its predictions while the test accuracy did not increase too much. From this result, I think I don't have enough training data, or, I need to put  more random transformations in the augmenting process. 
 
 
