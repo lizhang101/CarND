@@ -146,6 +146,8 @@ The Top5 results:
 
 ![image](/home/lizhang/workspace/Udacity/CarND/CarND-Traffic-Sign-Classifier-Project/examples/top5.png)
 
-####The accuracy only reached 81.8% on these new images. I did this for several round. At beginning, this model was not so confident on its predictions. After I trained a few more rounds, it's getting fully confident on its predictions while the test accuracy did not increase too much. From this result, I think I don't have enough training data, or, I need to put  more random transformations in the augmenting process. 
+###Performance Analysys
+The accuracy only reached 81.8% on these new images. So, compared to  accuracy of 95.2% on test set, I think this model is overfitting. The very high accuracy on training data (100%) also indicates this. I think I may need more training data, or use more random transformations on the training data.
+
 
 
