@@ -26,7 +26,7 @@ I used the images of chessboard in camera_cal and openCV for camera calibration.
 
 Here is an example of undistorted image (origin and after undistorted)
 
-![image](./examples/undistort.png)
+![image](./output_images/undistort.png)
 
 We can see the lines of the 2nd images are more straight than the original image.
 
@@ -36,9 +36,7 @@ The function used in my code for the distortion correction is undistort()
 
 #### 1. Get the undistorted images by using the camera calibration matrix from "Camera Calibration". Here is an example of the original raw image from the project video and the one after calibration:
 
-![image](./examples/undistort_test_2.png "Original")
-
-
+![undistort_test_2](output_images/undistort_test_2.png)
 
 #### 2. Binary Thresholding 
 
@@ -46,9 +44,11 @@ In this stage, we want to mask out the pixels only on the lanes as more as possi
 
 I first convert the input image from RGB color space to HSV and HLS color space. Both the HSL Saturate channel and HSV Value channel separate the lane lines very from the background. This makes sense science the lines tend to to have saturated color and with high value. Both of them have similar performance in my experiment, but HSV Value channel is slightly better.
 
-Then I applied Sobel filter in X and Y direction with threshold to extract the pixels on lanes markers. Most of the time those lines are tend to be close to vertical, but if there is a sharp turn, those lines could be more close to horizontal. So I used Sobel filter in both directions. Then, I used direction filter to filter out the pixels with gradient more close to X and Y direction, respectively. The direction filter is used combined with the Sobel filter in X or Y direction to filter out some noises further more. So, there are 2 binary output so far, one is to capture the pixels on vertical orientated lanes, another is to capture the more horizontal orientated lanes. Finally, I combined these 2 binary outputs by a pixel wise "OR" operation. Any pixel appears in any of the result will be in the final output binary images. Here are some examples of this stage processing:
+Then I applied Sobel filter in X and Y direction with threshold to extract the pixels on lanes markers. Most of the time those lines are tend to be close to vertical, but if there is a sharp turn, those lines could be more close to horizontal. So I used Sobel filter in both directions. Then, I used direction filter to filter out the pixels with gradient more close to X and Y direction, respectively. The direction filter is used combined with the Sobel filter in X or Y direction to filter out some noises further more. So, there are 2 binary output so far, one is to capture the pixels on vertical orientated lanes, another is to capture the more horizontal orientated lanes. Finally, I combined these 2 binary outputs by a pixel wise "OR" operation. Any pixel appears in any of the result will be in the final output binary images. Here are some output_images of this stage processing:
 
-![image](./examples/sobel_dir.png)
+![image](./output_images/sobel_dir.png)
+
+
 
 The first column shows the undistorted color images, the 2nd column shows the final images, the 3rd column shows the result of Sobel filter in X direction, and the final column shows the result of direction filter in vertical. Note the final images are after perspective transformation. 
 
@@ -60,13 +60,13 @@ I select the 4 source points in one of the input images with straight lane lines
 
 This transformation is applied to the final binary image of the image_process(). The transformed results are also shown in previous image.
 
-The function used for perspective transform is unwarp(img) in my code.  ![birdview](examples/birdview.png)
+The function used for perspective transform is unwarp(img) in my code.  ![birdview](output_images/birdview.png)
 
 #### 4. Locate Lanes
 
 In the bird-view binary images, I use a histogram function with bottom half of the image to locate the possible lanes' location in X axis, called leftx_base and rightx_base. Each of them is the center of a searching window. I count the pixels in the searching window. If the total number of pixels is more than a threshold, I treat this is a valid window. then, recalculate the window center and use it as the center of the next searching window. If it's not a valid window, I'll use the previous center. I also checked the calculated center, to make sure they are in a reasonable range by assuming the lane lines should always appear in some area at left and right. After I have all the pixels that thought to be on the left or right lane, I fit those pixels with a 2nd order polynomial. The final result is like this:
 
-![image](examples/fullysearch.png)
+![fullysearch](output_images/fullysearch.png)
 
 The function for this process is fully_search_lanes()
 
@@ -80,9 +80,7 @@ The function for curvature calculate is cal_calculate()
 
 Finally, I draw the detected lanes back to the undistorted image as shown in the following image. A inverse perspective transformation matrix is used in this step which is from the perspective transformation step.
 
-
-
-![image](examples/drawlanes.png)
+![drawlanes](output_images/drawlanes.png)
 
 ---
 
@@ -99,11 +97,11 @@ I checked the lines detected by fully search and quick search to see if they are
 
 Here are my results for the 3 videos of this project:
 
-[project_output.mp4](examples/project_output.mp4)
+[project_output.mp4](output_images/project_output.mp4)
 
-[challenge_output.mp4](examples/challenge_output.mp4)
+[challenge_output.mp4](output_images/challenge_output.mp4)
 
-[harder_challenge_output.mp4](examples/harder_challenge_output.mp4)
+[harder_challenge_output.mp4](output_images/harder_challenge_output.mp4)
 
 ---
 

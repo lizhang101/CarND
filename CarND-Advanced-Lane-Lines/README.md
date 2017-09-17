@@ -21,10 +21,10 @@ The steps of this project are the following:
 
 One input image before processing:
 
-![image](examples/origin-0.png)
+![image](output_images/origin-0.png)
 
 and the final result for this image as:
 
-![image](examples/drawlanes.png)
+![image](output_images/drawlanes.png)
 
 The source and processed videos are not included here. The source video can be downloaded from Udacity git repo for this project.
