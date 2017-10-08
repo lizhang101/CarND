@@ -74,7 +74,13 @@ class ColorHist:
             print('Your function is returning None for at least one variable...')
 
 class ColorSpace:
-    valid_formats = ('rgb', 'hsv', 'hls', 'yrb', 'lab')
+    '''
+    Take in an image, covert it into given color space, and store the converted image into self.cvt_img
+    This class can show the source image and each channel of the converted image.
+    This class can plot pixel distributions in converted color space
+
+    '''
+    valid_formats = ('rgb', 'hsv', 'hls', 'yrb', 'lab', 'yuv')
     def __init__(self, img, to='rgb'):
         self.img = img
         self.format = to
@@ -96,6 +102,8 @@ class ColorSpace:
             self.cvt_img = cv2.cvtColor(self.img, cv2.COLOR_RGB2YCrCb)
         if to=='lab':
             self.cvt_img = cv2.cvtColor(self.img, cv2.COLOR_RGB2LAB)
+        if to=='yuv':
+            self.cvt_img = cv2.cvtColor(self.img, cv2.COLOR_RGB2YUV)
 
     def show(self):
         fig = plt.figure(figsize=(12,3))
