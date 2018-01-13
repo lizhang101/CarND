@@ -52,17 +52,17 @@ public:
   double TotalError();
 
   /*
-  *  Returns the average error.
+  *  Get the average error.
   */
   double AverageError();
 
   /*
-  * Returns the min error.
+  * Get the min error.
   */
   double MinError();
 
   /*
-  * Returns the max error.
+  * Get the max error.
   */
   double MaxError();
 };
