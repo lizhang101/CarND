@@ -300,7 +300,7 @@ int main() {
             // Car's behavior
             //--------------
 
-            double speed_diff = 0;
+            double speed_change = 0;
             const double MAX_SPEED = 49.5;
             const double MAX_ACC = .224;
             if ( car_ahead ) { // Car ahead
@@ -315,7 +315,7 @@ int main() {
               } else {
                 //have to slow down.
                 //TODO: apply a emergency break if too close to the car ahead.
-                speed_diff -= MAX_ACC;
+                speed_change -= MAX_ACC;
               }
             } else {
               //if not on center lane, go back to center.
@@ -324,7 +324,7 @@ int main() {
                 pred_lane = 1; 
               }
               if ( pred_car_velocity < MAX_SPEED ) {
-                speed_diff += MAX_ACC;
+                speed_change += MAX_ACC;
               }
             }
 
@@ -360,6 +360,9 @@ int main() {
                 ptsy.push_back(ref_y_prev);
                 ptsy.push_back(ref_y);
             }
+
+            //---Trajectory---
+            //----------------
 
             // set up next points.
             vector<double> next_wp0 = getXY(car_s + 30, 2 + 4*pred_lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
@@ -405,7 +408,7 @@ int main() {
             double x_add_on = 0;
 
             for( int i = 1; i < 50 - prev_size; i++ ) {
-              pred_car_velocity += speed_diff;
+              pred_car_velocity += speed_change;
               if ( pred_car_velocity > MAX_SPEED ) {
                 pred_car_velocity = MAX_SPEED;
               } else if ( pred_car_velocity < MAX_ACC ) {
@@ -429,6 +432,7 @@ int main() {
               next_x_vals.push_back(x_point);
               next_y_vals.push_back(y_point);
             }
+            //----Student Code End----
 
             json msgJson;
           	msgJson["next_x"] = next_x_vals;
