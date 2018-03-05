@@ -78,10 +78,10 @@ int NextWaypoint(double x, double y, double theta, const vector<double> &maps_x,
   if(angle > pi()/4)
   {
     closestWaypoint++;
-  if (closestWaypoint == maps_x.size())
-  {
-    closestWaypoint = 0;
-  }
+    if (closestWaypoint == maps_x.size())
+    {
+      closestWaypoint = 0;
+    }
   }
 
   return closestWaypoint;
@@ -202,12 +202,12 @@ int main() {
   }
 
   // Car's lane. Stating at middle lane.
-  int lane = 1;
+  int pred_lane = 1;
 
-  // Reference velocity.
-  double ref_vel = 0.0; // mph
+  // Car's velocity.
+  double pred_car_velocity = 0.0; 
 
-  h.onMessage([&ref_vel, &lane, &map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy]
+  h.onMessage([&pred_lane, &pred_car_velocity,  &map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy]
     (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -244,18 +244,27 @@ int main() {
           	// Sensor Fusion Data, a list of all other cars on the same side of the road.
           	auto sensor_fusion = j[1]["sensor_fusion"];
 
+            //---Student Code Start---
+
             // Provided previous path point size.
             int prev_size = previous_path_x.size();
 
-            // Preventing collitions.
+            //make sure my car's previous position is valid.
             if (prev_size > 0) {
               car_s = end_path_s;
             }
 
-            // Prediction : Analysing other cars positions.
+            //---Prediction--- 
+            // Analysing other cars positions and speed.
+            //----------------
+
+            // there is a car ahead
             bool car_ahead = false;
+            // there is a car at left
             bool car_left = false;
-            bool car_righ = false;
+            // there is a car at right
+            bool car_right = false;
+            //check sensor data for each detected car
             for ( int i = 0; i < sensor_fusion.size(); i++ ) {
                 float d = sensor_fusion[i][6];
                 int car_lane = -1;
@@ -270,7 +279,7 @@ int main() {
                 if (car_lane < 0) {
                   continue;
                 }
-                // Find car speed.
+                // Calculate car speed.
                 double vx = sensor_fusion[i][3];
                 double vy = sensor_fusion[i][4];
                 double check_speed = sqrt(vx*vx + vy*vy);
@@ -278,39 +287,43 @@ int main() {
                 // Estimate car s position after executing previous trajectory.
                 check_car_s += ((double)prev_size*0.02*check_speed);
 
-                if ( car_lane == lane ) {
-                  // Car in our lane.
+                if ( car_lane == pred_lane ) {
                   car_ahead |= check_car_s > car_s && check_car_s - car_s < 30;
-                } else if ( car_lane - lane == -1 ) {
-                  // Car left
+                } else if ( car_lane - pred_lane == -1 ) {
                   car_left |= car_s - 30 < check_car_s && car_s + 30 > check_car_s;
-                } else if ( car_lane - lane == 1 ) {
-                  // Car right
-                  car_righ |= car_s - 30 < check_car_s && car_s + 30 > check_car_s;
+                } else if ( car_lane - pred_lane == 1 ) {
+                  car_right |= car_s - 30 < check_car_s && car_s + 30 > check_car_s;
                 }
             }
 
-            // Behavior : Let's see what to do.
+            //---Behavior---
+            // Car's behavior
+            //--------------
+
             double speed_diff = 0;
             const double MAX_SPEED = 49.5;
             const double MAX_ACC = .224;
             if ( car_ahead ) { // Car ahead
-              if ( !car_left && lane > 0 ) {
+              if ( !car_left && pred_lane > 0 ) {
                 // if there is no car left and there is a left lane.
-                lane--; // Change lane left.
-              } else if ( !car_righ && lane != 2 ){
+                // Change to left lane.
+                pred_lane--; 
+              } else if ( !car_right && pred_lane != 2 ){
                 // if there is no car right and there is a right lane.
-                lane++; // Change lane right.
+                // Change to right lane.
+                pred_lane++; 
               } else {
+                //have to slow down.
+                //TODO: apply a emergency break if too close to the car ahead.
                 speed_diff -= MAX_ACC;
               }
             } else {
-              if ( lane != 1 ) { // if we are not on the center lane.
-                if ( ( lane == 0 && !car_righ ) || ( lane == 2 && !car_left ) ) {
-                  lane = 1; // Back to center.
-                }
+              //if not on center lane, go back to center.
+              if ((pred_lane == 0 && !car_right) || (pred_lane == 2 && !car_left))
+              {
+                pred_lane = 1; 
               }
-              if ( ref_vel < MAX_SPEED ) {
+              if ( pred_car_velocity < MAX_SPEED ) {
                 speed_diff += MAX_ACC;
               }
             }
@@ -322,9 +335,8 @@ int main() {
             double ref_y = car_y;
             double ref_yaw = deg2rad(car_yaw);
 
-            // Do I have have previous points
+            // if previous points are valid
             if ( prev_size < 2 ) {
-                // There are not too many...
                 double prev_car_x = car_x - cos(car_yaw);
                 double prev_car_y = car_y - sin(car_yaw);
 
@@ -349,10 +361,10 @@ int main() {
                 ptsy.push_back(ref_y);
             }
 
-            // Setting up target points in the future.
-            vector<double> next_wp0 = getXY(car_s + 30, 2 + 4*lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
-            vector<double> next_wp1 = getXY(car_s + 60, 2 + 4*lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
-            vector<double> next_wp2 = getXY(car_s + 90, 2 + 4*lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            // set up next points.
+            vector<double> next_wp0 = getXY(car_s + 30, 2 + 4*pred_lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> next_wp1 = getXY(car_s + 60, 2 + 4*pred_lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
+            vector<double> next_wp2 = getXY(car_s + 90, 2 + 4*pred_lane, map_waypoints_s, map_waypoints_x, map_waypoints_y);
 
             ptsx.push_back(next_wp0[0]);
             ptsx.push_back(next_wp1[0]);
@@ -378,6 +390,8 @@ int main() {
             // Output path points from previous path for continuity.
           	vector<double> next_x_vals;
           	vector<double> next_y_vals;
+
+          	// TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
             for ( int i = 0; i < prev_size; i++ ) {
               next_x_vals.push_back(previous_path_x[i]);
               next_y_vals.push_back(previous_path_y[i]);
@@ -391,13 +405,13 @@ int main() {
             double x_add_on = 0;
 
             for( int i = 1; i < 50 - prev_size; i++ ) {
-              ref_vel += speed_diff;
-              if ( ref_vel > MAX_SPEED ) {
-                ref_vel = MAX_SPEED;
-              } else if ( ref_vel < MAX_ACC ) {
-                ref_vel = MAX_ACC;
+              pred_car_velocity += speed_diff;
+              if ( pred_car_velocity > MAX_SPEED ) {
+                pred_car_velocity = MAX_SPEED;
+              } else if ( pred_car_velocity < MAX_ACC ) {
+                pred_car_velocity = MAX_ACC;
               }
-              double N = target_dist/(0.02*ref_vel/2.24);
+              double N = target_dist/(0.02*pred_car_velocity/2.24);
               double x_point = x_add_on + target_x/N;
               double y_point = s(x_point);
 
