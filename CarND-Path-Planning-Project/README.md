@@ -38,8 +38,13 @@ The project has the following dependencies (from Udacity's seed project):
 
 # Rubic
 
-* Car passed 20 miles without incidents.  
-![20 miles](images/20_miles.png)
+* Car passed 10 miles without incidents.  
+![10 miles](images/10_miles.png)
+* Car is able to behavior correctly under those cases:
+![to left](images/change_to_left.png)
+![to right](images/change_to_right.png)
+![to center](images/go_back_to_center.png)
+
 * No speed limit red message was seen.
 * Max acceleration and jerk are not exceeded.
 * No collisions.
@@ -58,7 +63,7 @@ Predict other cars speeds and positions with the given telemetry and sensor fusi
 
 These are detected by calculating the lane each other car is and the position it will be at at the end of the last plan trajectory. If the car is within 30m in front or behind us, it's taken as "dangerous".
 
-### Hehavior [line 300 to line 329](./src/main.cpp#L300)
+### Behavior [line 300 to line 329](./src/main.cpp#L300)
 Based on the situations detected in prediction stage, this part of code will make decision of:
 - If a car blocks us ahead: try to change left lane, if can't, try to change to right lane, if still not, slow down.
 - Change back to center lane whenever feasible.
