@@ -73,4 +73,6 @@ Based on the situations detected in prediction stage, this part of code will mak
 ### Trajectory [line 364 to line 435](./src/main.cpp#L364)
 This code generates the trajectory based on the speed and lane output from the behavior, car coordinates and past path points.
 
-A spline is created with previous trajectory points. Then, those coordinates are   are transformed (shift and rotation) to local car coordinates. The rest of past trajectory points are also copied to the new trajectory to get a more continuity result. The speed is also adjusted based on every trajectory points here.
+First, a spline is initialized based on the last 2 points of the previous trajectory, or the car position if there are no previous trajectory(line 338 to line 362), and 3 points at a far distance (line 368 to line 391). These coordinates are transformed into local car coordinates to make the spline calculation easier.  
+Then, the pass trajectory points are copied into the new trajectory to make the path more continuity(line 397 to 400).  
+Finally, the rest of points are calculated by evaluating the spline to the target position, and transform those output points back to global coordinates (line 403 to line 433). The speed used to calculate these points is also adjusted according to the behavior stage output.

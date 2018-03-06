@@ -394,7 +394,6 @@ int main() {
           	vector<double> next_x_vals;
           	vector<double> next_y_vals;
 
-          	// TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
             for ( int i = 0; i < prev_size; i++ ) {
               next_x_vals.push_back(previous_path_x[i]);
               next_y_vals.push_back(previous_path_y[i]);
