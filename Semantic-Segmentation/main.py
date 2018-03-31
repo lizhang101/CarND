@@ -170,6 +170,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     
     print("Training...")
     print()
+    batch_num = 0
     for i in range(epochs):
         print("EPOCH {} ...".format(i+1))
         for images, labels in get_batches_fn(batch_size):
@@ -178,7 +179,9 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                                            correct_label: labels,                                
                                            keep_prob: 0.5, 
                                            learning_rate: 0.0005})
-            print("Loss: = {:.3f}".format(loss))
+            if batch_num % 10 == 0:                            
+                print("Loss: = {:.3f}".format(loss))
+            batch_num += 1
         print()
 
 tests.test_train_nn(train_nn)
